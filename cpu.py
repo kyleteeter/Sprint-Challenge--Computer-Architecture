@@ -68,19 +68,21 @@ class CPU:
     # def op_add(self, reg1, reg2):
     #     self.reg[reg1] += self.reg[reg2]
 
-    def op_hlt(self, operand_a, operand_b):
-        self.hlt = True
+    # def op_hlt(self, operand_a, operand_b):
+    #     self.hlt = True
+    def op_prn(self, operand_a):
+        print(self.reg[operand_a])
+        self.pc +=2
+
+    def op_hlt(self):
+        sys.exit()
 
     def op_ldi(self, addr, value):
         self.reg[addr] = value
         self.pc += 3
 
-    def op_mul(self, operand_a, operand_b):
-        self.alu('MUL', operand_a, operand_b)
-
-    def op_prn(self, addr, operand_b):
-        print(self.reg[addr])
-        self.pc += 2
+    # def op_mul(self, operand_a, operand_b):
+    #     self.alu('MUL', operand_a, operand_b)
 
     def op_pop(self, addr, operand_b):
         value = self.ram_read(self.reg[SP])
@@ -143,7 +145,7 @@ class CPU:
                         address += 1
         except FileNotFoundError:
             print(f"{sys.argv[0]}: {sys.argv[1]} Not found")
-            sys.exit(2)
+            sys.exit()
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -212,6 +214,8 @@ class CPU:
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
 
+        print()
+
     def run(self):
         ir = self.ram[self.pc]
         """Run the CPU."""
@@ -226,11 +230,11 @@ class CPU:
             cpu_op = (ir & 0b11000000) >> 6
             alu_op = (ir & 0b00100000) >> 5
 
-            if ir == self.op_call:
+            if ir == 0b01010000:
                 self.op_table[ir](operand_a)
                 continue
 
-            elif ir == self.op_ret:
+            elif ir == 0b00010001:
                 self.op_table[ir]()
                 continue
             
@@ -243,7 +247,7 @@ class CPU:
             elif cpu_op == 0:
                 self.op_table[ir]()
             else:
-                self.hlt()
+                self.op_hlt()
 #     # Code to test the Sprint Challenge
 # #
 # # Expected output:
