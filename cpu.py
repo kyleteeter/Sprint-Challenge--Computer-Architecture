@@ -61,8 +61,8 @@ class CPU:
     def ram_read(self, pc_address):
         return self.ram[pc_address]
 
-    def ram_write(self, value, pc_address):
-        self.ram[value] = pc_address
+    def ram_write(self, pc_address, value):
+        self.ram[pc_address] = value
 
     
     # def op_add(self, reg1, reg2):
@@ -73,22 +73,27 @@ class CPU:
 
     def op_ldi(self, addr, value):
         self.reg[addr] = value
+        self.pc += 3
 
     def op_mul(self, operand_a, operand_b):
         self.alu('MUL', operand_a, operand_b)
 
     def op_prn(self, addr, operand_b):
         print(self.reg[addr])
+        self.pc += 2
 
     def op_pop(self, addr, operand_b):
         value = self.ram_read(self.reg[SP])
         self.ram_write(self.reg[SP], 0)
         self.reg[addr] = value
         self.reg[SP] += 1
+        self.pc += 2
+
     def op_push(self, addr, operand_b):
         self.reg[SP] -= 1
         value = self.reg[addr]
         self.ram_write(self.reg[SP], value)
+        self.pc += 2
     
     def op_ret(self):
         address = self.ram[self.reg[SP]]
@@ -117,7 +122,7 @@ class CPU:
         else: 
             self.pc += 2
 
-        def load(self):
+    def load(self):
         """Load a program into memory."""
 
         address = 0
@@ -152,32 +157,32 @@ class CPU:
         CMP = 0b10100111
 
 
-        if op == "ADD":
+        if op == ADD:
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
-        elif op == "MUL":
+        elif op == MUL:
             self.reg[reg_a] *= self.reg[reg_b]
-        elif op == "SUB":
+        elif op == SUB:
             self.reg[reg_a] -= self.reg[reg_b]
 
-        elif op == "DIV":
+        elif op == DIV:
             self.reg[reg_a] /= self.reg[reg_b]
         
-        elif op == "XOR":
+        elif op == XOR:
             xor = self.reg[reg_a]^self.reg[reg_b]
             self.reg[reg_b] = xor
 
-        elif op == "SHR":
+        elif op == SHR:
             shr = self.reg[reg_a]
             right = shr >> self.reg[reg_b]
             self.reg[reg_a] = right
         
-        elif op == "SHL":
+        elif op == SHL:
             shl = self.reg[reg_a]
             left = shl << self.reg[reg_b]
             self.reg[reg_a] = left
         
-        elif op == "CMP":
+        elif op == CMP:
             a = self.reg[reg_a]
             b = self.reg[reg_b]
             if a == b:
@@ -206,7 +211,7 @@ class CPU:
 
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
-            
+
     def run(self):
         ir = self.ram[self.pc]
         """Run the CPU."""
@@ -238,7 +243,7 @@ class CPU:
             elif cpu_op == 0:
                 self.op_table[ir]()
             else:
-                self.op_hlt()
+                self.hlt()
 #     # Code to test the Sprint Challenge
 # #
 # # Expected output:
