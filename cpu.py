@@ -48,11 +48,14 @@ class CPU:
 
 
 
-    def load(self, filename):
+    def load(self):
         """Load a program into memory."""
 
         address = 0
 
+        if len(sys.argv) != 2:
+            print('Usage: using file <filename>', file = sys.stderr)
+            sys.exit(1)
         try:
             # sys.argv is a list in Python, which contains the command-line arguments passed to the script.
             with open(sys.argv[1]) as f:  # open a file
@@ -76,6 +79,35 @@ class CPU:
         #elif op == "SUB": etc
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "SUB":
+            self.reg[reg_a] -= self.reg[reg_b]
+
+        elif op == "DIV":
+            self.reg[reg_a] /= self.reg[reg_b]
+        
+        elif op == "XOR":
+            xor = self.reg[reg_a]^self.reg[reg_b]
+            self.reg[reg_b] = xor
+
+        elif op == "SHR":
+            shr = self.reg[reg_a]
+            right = shr >> self.reg[reg_b]
+            self.reg[reg_a] = right
+        
+        elif op == "SHL":
+            shl = self.reg[reg_a]
+            left = shl << self.reg[reg_b]
+            self.reg[reg_a] = left
+        
+        elif op == "CMP":
+            a = self.reg[reg_a]
+            b = self.reg[reg_b]
+            if a == b:
+                self.fl = 0b00000010
+            elif a < b:
+                self.fl = 0b00000100
+            elif a > b: 
+                self.fl = 0b00000001
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -106,11 +138,11 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while not self.hlt:
-            ir = self.ram_read(self.pc)
+            ir = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-            int_size = (ir >> 6) 
-            self.inst_set_pc = ((ir >> 4) & 0b1) == 1
+            # int_size = (ir >> 6) 
+            # self.inst_set_pc = ((ir >> 4) & 0b1) == 1
         
 
             if ir in self.ins:
@@ -168,7 +200,10 @@ class CPU:
             self.pc += 2
 
     def op_jeq(self, operand_a):
-        
+        if self.fl == 0b00000010:
+            self.pc = self.reg[operand_a]
+        else: 
+            self.pc += 2
 #     # Code to test the Sprint Challenge
 # #
 # # Expected output:
