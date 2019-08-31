@@ -154,7 +154,8 @@ class CPU:
         sub_address = self.ram[operand_a]
         self.reg[SP] = sub_address
     
-    
+    def op_jmp(self, operand_a): 
+        self.pc = self.reg[operand_a]
 #     # Code to test the Sprint Challenge
 # #
 # # Expected output:
