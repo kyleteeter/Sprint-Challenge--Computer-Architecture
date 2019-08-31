@@ -146,7 +146,15 @@ class CPU:
         address = self.ram[self.reg[SP]]
         self.pc = address
         self.reg[SP] += 1
-
+ 
+    def op_call(self, operand_a):
+        self.reg[SP] -= 1
+        address = self.pc + 2
+        self.ram[self.reg[SP]] = address
+        sub_address = self.ram[operand_a]
+        self.reg[SP] = sub_address
+    
+    
 #     # Code to test the Sprint Challenge
 # #
 # # Expected output:
