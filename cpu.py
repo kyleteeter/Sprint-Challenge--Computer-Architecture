@@ -26,7 +26,7 @@ class CPU:
         self.pc = 0
         self.reg[SP] = 0xF4
         self.hlt = False
-        self.inst_set_pc = False
+        # self.inst_set_pc = False
         self.fl = None
 
         self.op_table = {}
@@ -57,7 +57,67 @@ class CPU:
 
         # }
 
-    def load(self):
+
+    def ram_read(self, pc_address):
+        return self.ram[pc_address]
+
+    def ram_write(self, value, pc_address):
+        self.ram[value] = pc_address
+
+    
+    # def op_add(self, reg1, reg2):
+    #     self.reg[reg1] += self.reg[reg2]
+
+    def op_hlt(self, operand_a, operand_b):
+        self.hlt = True
+
+    def op_ldi(self, addr, value):
+        self.reg[addr] = value
+
+    def op_mul(self, operand_a, operand_b):
+        self.alu('MUL', operand_a, operand_b)
+
+    def op_prn(self, addr, operand_b):
+        print(self.reg[addr])
+
+    def op_pop(self, addr, operand_b):
+        value = self.ram_read(self.reg[SP])
+        self.ram_write(self.reg[SP], 0)
+        self.reg[addr] = value
+        self.reg[SP] += 1
+    def op_push(self, addr, operand_b):
+        self.reg[SP] -= 1
+        value = self.reg[addr]
+        self.ram_write(self.reg[SP], value)
+    
+    def op_ret(self):
+        address = self.ram[self.reg[SP]]
+        self.pc = address
+        self.reg[SP] += 1
+ 
+    def op_call(self, operand_a):
+        self.reg[SP] -= 1
+        address = self.pc + 2
+        self.ram[self.reg[SP]] = address
+        sub_address = self.ram[operand_a]
+        self.reg[SP] = sub_address
+    
+    def op_jmp(self, operand_a): 
+        self.pc = self.reg[operand_a]
+
+    def op_jne(self, operand_a):
+        if self.fl != 0b00000010:
+            self.pc = self.reg[operand_a]
+        else: 
+            self.pc += 2
+
+    def op_jeq(self, operand_a):
+        if self.fl == 0b00000010:
+            self.pc = self.reg[operand_a]
+        else: 
+            self.pc += 2
+
+        def load(self):
         """Load a program into memory."""
 
         address = 0
@@ -146,13 +206,7 @@ class CPU:
 
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
-
-    def ram_read(self, pc_address):
-        return self.ram[pc_address]
-
-    def ram_write(self, value, pc_address):
-        self.ram[value] = pc_address
-
+            
     def run(self):
         ir = self.ram[self.pc]
         """Run the CPU."""
@@ -175,58 +229,16 @@ class CPU:
                 self.op_table[ir]()
                 continue
             
-            
-    # def op_add(self, reg1, reg2):
-    #     self.reg[reg1] += self.reg[reg2]
-
-    def op_hlt(self, operand_a, operand_b):
-        self.hlt = True
-
-    def op_ldi(self, addr, value):
-        self.reg[addr] = value
-
-    def op_mul(self, operand_a, operand_b):
-        self.alu('MUL', operand_a, operand_b)
-
-    def op_prn(self, addr, operand_b):
-        print(self.reg[addr])
-
-    def op_pop(self, addr, operand_b):
-        value = self.ram_read(self.reg[SP])
-        self.ram_write(self.reg[SP], 0)
-        self.reg[addr] = value
-        self.reg[SP] += 1
-    def op_push(self, addr, operand_b):
-        self.reg[SP] -= 1
-        value = self.reg[addr]
-        self.ram_write(self.reg[SP], value)
-    
-    def op_ret(self):
-        address = self.ram[self.reg[SP]]
-        self.pc = address
-        self.reg[SP] += 1
- 
-    def op_call(self, operand_a):
-        self.reg[SP] -= 1
-        address = self.pc + 2
-        self.ram[self.reg[SP]] = address
-        sub_address = self.ram[operand_a]
-        self.reg[SP] = sub_address
-    
-    def op_jmp(self, operand_a): 
-        self.pc = self.reg[operand_a]
-
-    def op_jne(self, operand_a):
-        if self.fl != 0b00000010:
-            self.pc = self.reg[operand_a]
-        else: 
-            self.pc += 2
-
-    def op_jeq(self, operand_a):
-        if self.fl == 0b00000010:
-            self.pc = self.reg[operand_a]
-        else: 
-            self.pc += 2
+            if alu_op:
+                self.alu(ir, operand_a, operand_b)
+            elif cpu_op == 2:
+                self.op_table[ir](operand_a, operand_b)
+            elif cpu_op == 1:
+                self.op_table[ir](operand_a)
+            elif cpu_op == 0:
+                self.op_table[ir]()
+            else:
+                self.op_hlt()
 #     # Code to test the Sprint Challenge
 # #
 # # Expected output:
