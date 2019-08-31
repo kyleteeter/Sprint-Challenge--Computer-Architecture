@@ -8,6 +8,9 @@ LDI = 0b10000010
 MUL = 0b10100010 
 POP = 0b01000110
 PUSH = 0b01000101
+RET = 0b00010001
+CALL = 0b01010000
+JMP = 0b01010100
 
 SP = 7
 
@@ -19,9 +22,10 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
-        self.reg[SP] = 0xF3
+        self.reg[SP] = 0xF4
         self.hlt = False
         self.inst_set_pc = False
+        self.fl = None
 
         self.ins = {
             # ADD: self.op_add,
@@ -30,7 +34,11 @@ class CPU:
             MUL: self.op_mul,
             PRN: self.op_prn,
             POP: self.op_pop,
-            PUSH: self.op_push
+            PUSH: self.op_push,
+            RET: self.op_ret,
+            CALL: self.op_call,
+            JMP: self.op_jmp,
+
         }
 
 
@@ -41,21 +49,6 @@ class CPU:
 
         address = 0
 
-        # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
         try:
             # sys.argv is a list in Python, which contains the command-line arguments passed to the script.
             with open(sys.argv[1]) as f:  # open a file
@@ -148,22 +141,95 @@ class CPU:
         self.reg[SP] -= 1
         value = self.reg[addr]
         self.ram_write(self.reg[SP], value)
-        # running = True
-        # while running:
-        #     command = self.ram[self.pc]
-        #     if command == HTL:
-        #         running = False
-        #     elif command == LDI:
-        #         #reg location
-        #         operand_a = self.ram_read(self.pc + 1)
-        #         #value
-        #         operand_b = self.ram_read(self.pc + 2)
-        #         #set value of a register to an integer
-        #         self.reg[operand_a] = operand_b
-        #         self.pc += 3
-        #     elif command == PRN:
-        #         #Print numeric value stored in the given register
-        #         print(self.reg[self.ram[self.pc + 1]])
-        #         self.pc += 2
-        #     else:
-        #         print("Error: Command not found")
+    
+    def op_ret(self):
+        address = self.ram[self.reg[SP]]
+        self.pc = address
+        self.reg[SP] += 1
+
+#     # Code to test the Sprint Challenge
+# #
+# # Expected output:
+# # 1
+# # 4
+# # 5
+
+# 10000010 # LDI R0,10
+# 00000000
+# 00001010
+# 10000010 # LDI R1,20
+# 00000001
+# 00010100
+# 10000010 # LDI R2,TEST1
+# 00000010
+# 00010011
+# 10100111 # CMP R0,R1
+# 00000000
+# 00000001
+# 01010101 # JEQ R2
+# 00000010
+# 10000010 # LDI R3,1
+# 00000011
+# 00000001
+# 01000111 # PRN R3
+# 00000011
+# # TEST1 (address 19):
+# 10000010 # LDI R2,TEST2
+# 00000010
+# 00100000
+# 10100111 # CMP R0,R1
+# 00000000
+# 00000001
+# 01010110 # JNE R2
+# 00000010
+# 10000010 # LDI R3,2
+# 00000011
+# 00000010
+# 01000111 # PRN R3
+# 00000011
+# # TEST2 (address 32):
+# 10000010 # LDI R1,10
+# 00000001
+# 00001010
+# 10000010 # LDI R2,TEST3
+# 00000010
+# 00110000
+# 10100111 # CMP R0,R1
+# 00000000
+# 00000001
+# 01010101 # JEQ R2
+# 00000010
+# 10000010 # LDI R3,3
+# 00000011
+# 00000011
+# 01000111 # PRN R3
+# 00000011
+# # TEST3 (address 48):
+# 10000010 # LDI R2,TEST4
+# 00000010
+# 00111101
+# 10100111 # CMP R0,R1
+# 00000000
+# 00000001
+# 01010110 # JNE R2
+# 00000010
+# 10000010 # LDI R3,4
+# 00000011
+# 00000100
+# 01000111 # PRN R3
+# 00000011
+# # TEST4 (address 61):
+# 10000010 # LDI R3,5
+# 00000011
+# 00000101
+# 01000111 # PRN R3
+# 00000011
+# 10000010 # LDI R2,TEST5
+# 00000010
+# 01001001
+# 01010100 # JMP R2
+# 00000010
+# 01000111 # PRN R3
+# 00000011
+# # TEST5 (address 73):
+# 00000001 # HLT
