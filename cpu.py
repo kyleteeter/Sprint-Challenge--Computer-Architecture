@@ -57,9 +57,6 @@ class CPU:
 
         # }
 
-
-
-
     def load(self):
         """Load a program into memory."""
 
@@ -85,6 +82,15 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
+        MUL = 0b10100010
+        ADD = 0b10100000
+        SUB = 0b10100001
+        DIV = 0b10100011
+        XOR = 0b10101011
+        SHR = 0b10101101
+        SHL = 0b10101100
+        CMP = 0b10100111
+
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
@@ -162,9 +168,14 @@ class CPU:
             alu_op = (ir & 0b00100000) >> 5
 
             if ir == self.op_call:
-                self.op_call[ir](operand_a)
+                self.op_table[ir](operand_a)
                 continue
 
+            elif ir == self.op_ret:
+                self.op_table[ir]()
+                continue
+            
+            
     # def op_add(self, reg1, reg2):
     #     self.reg[reg1] += self.reg[reg2]
 
