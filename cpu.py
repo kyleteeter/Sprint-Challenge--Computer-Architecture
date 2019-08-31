@@ -160,6 +160,15 @@ class CPU:
     
     def op_jmp(self, operand_a): 
         self.pc = self.reg[operand_a]
+
+    def op_jne(self, operand_a):
+        if self.fl != 0b00000010:
+            self.pc = self.reg[operand_a]
+        else: 
+            self.pc += 2
+
+    def op_jeq(self, operand_a):
+        
 #     # Code to test the Sprint Challenge
 # #
 # # Expected output:
