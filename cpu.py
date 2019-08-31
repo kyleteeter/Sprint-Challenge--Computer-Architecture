@@ -2,17 +2,17 @@
 
 import sys
 
-HLT = 0b00000001
-PRN = 0b01000111
-LDI = 0b10000010
-MUL = 0b10100010 
-POP = 0b01000110
-PUSH = 0b01000101
-RET = 0b00010001
-CALL = 0b01010000
-JMP = 0b01010100
-JNE = 0b01010110
-JEQ = 0b01010101
+# HLT = 0b00000001
+# PRN = 0b01000111
+# LDI = 0b10000010
+# MUL = 0b10100010 
+# POP = 0b01000110
+# PUSH = 0b01000101
+# RET = 0b00010001
+# CALL = 0b01010000
+# JMP = 0b01010100
+# JNE = 0b01010110
+# JEQ = 0b01010101
 
 SP = 7
 
@@ -29,21 +29,33 @@ class CPU:
         self.inst_set_pc = False
         self.fl = None
 
-        self.ins = {
-            # ADD: self.op_add,
-            HLT: self.op_hlt,
-            LDI: self.op_ldi,
-            MUL: self.op_mul,
-            PRN: self.op_prn,
-            POP: self.op_pop,
-            PUSH: self.op_push,
-            RET: self.op_ret,
-            CALL: self.op_call,
-            JMP: self.op_jmp,
-            JNE: self.op_jne,
-            JEQ: self.op_jeq
+        self.op_table = {}
+        self.op_table[0b10000010] = self.op_ldi
+        self.op_table[0b01000111] = self.op_prn
+        self.op_table[0b00000001] = self.op_hlt
+        self.op_table[0b01000101] = self.op_push
+        self.op_table[0b01000110] = self.op_pop
+        self.op_table[0b00010001] = self.op_ret
+        self.op_table[0b01010000] = self.op_call
+        self.op_table[0b01010100] = self.op_jmp
+        self.op_table[0b01010101] = self.op_jeq
+        self.op_table[0b01010110] = self.op_jne
 
-        }
+        # self.ins = {
+        #     # ADD: self.op_add,
+        #     HLT: self.op_hlt,
+        #     LDI: self.op_ldi,
+        #     MUL: self.op_mul,
+        #     PRN: self.op_prn,
+        #     POP: self.op_pop,
+        #     PUSH: self.op_push,
+        #     RET: self.op_ret,
+        #     CALL: self.op_call,
+        #     JMP: self.op_jmp,
+        #     JNE: self.op_jne,
+        #     JEQ: self.op_jeq
+
+        # }
 
 
 
@@ -136,6 +148,7 @@ class CPU:
         self.ram[value] = pc_address
 
     def run(self):
+        ir = self.ram[self.pc]
         """Run the CPU."""
         while not self.hlt:
             ir = self.ram[self.pc]
@@ -145,13 +158,12 @@ class CPU:
             # self.inst_set_pc = ((ir >> 4) & 0b1) == 1
         
 
-            if ir in self.ins:
-                self.ins[ir](operand_a, operand_b)
-            else:
-                print('error: command not found')
-            
-            if not self.inst_set_pc:
-                self.pc += int_size + 1
+            cpu_op = (ir & 0b11000000) >> 6
+            alu_op = (ir & 0b00100000) >> 5
+
+            if ir == self.op_call:
+                self.op_call[ir](operand_a)
+                continue
 
     # def op_add(self, reg1, reg2):
     #     self.reg[reg1] += self.reg[reg2]
