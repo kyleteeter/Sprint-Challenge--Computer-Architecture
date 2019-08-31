@@ -40,6 +40,7 @@ class CPU:
         self.op_table[0b01010100] = self.op_jmp
         self.op_table[0b01010101] = self.op_jeq
         self.op_table[0b01010110] = self.op_jne
+        
 
         # self.ins = {
         #     # ADD: self.op_add,
@@ -64,12 +65,6 @@ class CPU:
     def ram_write(self, pc_address, value):
         self.ram[pc_address] = value
 
-    
-    # def op_add(self, reg1, reg2):
-    #     self.reg[reg1] += self.reg[reg2]
-
-    # def op_hlt(self, operand_a, operand_b):
-    #     self.hlt = True
     def op_prn(self, operand_a):
         print(self.reg[operand_a])
         self.pc +=2
@@ -80,9 +75,6 @@ class CPU:
     def op_ldi(self, addr, value):
         self.reg[addr] = value
         self.pc += 3
-
-    # def op_mul(self, operand_a, operand_b):
-    #     self.alu('MUL', operand_a, operand_b)
 
     def op_pop(self, addr, operand_b):
         value = self.ram_read(self.reg[SP])
@@ -195,7 +187,7 @@ class CPU:
                 self.fl = 0b00000001
         else:
             raise Exception("Unsupported ALU operation")
-
+        self.pc += 3
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -223,18 +215,15 @@ class CPU:
             ir = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-            # int_size = (ir >> 6) 
-            # self.inst_set_pc = ((ir >> 4) & 0b1) == 1
-        
-
+      
             cpu_op = (ir & 0b11000000) >> 6
             alu_op = (ir & 0b00100000) >> 5
 
-            if ir == 0b01010000:
+            if ir == self.op_call:
                 self.op_table[ir](operand_a)
                 continue
 
-            elif ir == 0b00010001:
+            elif ir == self.op_ret:
                 self.op_table[ir]()
                 continue
             
