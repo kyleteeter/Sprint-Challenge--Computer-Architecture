@@ -11,6 +11,8 @@ PUSH = 0b01000101
 RET = 0b00010001
 CALL = 0b01010000
 JMP = 0b01010100
+JNE = 0b01010110
+JEQ = 0b01010101
 
 SP = 7
 
@@ -38,6 +40,8 @@ class CPU:
             RET: self.op_ret,
             CALL: self.op_call,
             JMP: self.op_jmp,
+            JNE: self.op_jne,
+            JEQ: self.op_jeq
 
         }
 
